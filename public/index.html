@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Pomodoro Timer</title>
+<meta name="description" content="Timer Pomodoro simples, sem distrações e instalável. Funciona offline.">
+<meta name="theme-color" content="#1d1f24" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f5f2" media="(prefers-color-scheme: light)">
+<link rel="canonical" href="https://vieira-security.github.io/pomodoro-timer/">
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pomodoro">
+
+<!-- Open Graph / compartilhamento -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://vieira-security.github.io/pomodoro-timer/">
+<meta property="og:title" content="Pomodoro Timer">
+<meta property="og:description" content="Timer Pomodoro simples, sem distrações e instalável. Funciona offline.">
+<meta property="og:image" content="https://vieira-security.github.io/pomodoro-timer/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Pomodoro Timer">
+<meta name="twitter:description" content="Timer Pomodoro simples, sem distrações e instalável. Funciona offline.">
+<meta name="twitter:image" content="https://vieira-security.github.io/pomodoro-timer/og-image.png">
+
+<!-- Aplica o tema antes de pintar a tela (evita "piscar") -->
+<script>
+  try {
+    var t = localStorage.getItem("pomodoro-theme");
+    if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+  } catch (e) {}
+</script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-mode="focus">
+
+<header class="topbar">
+  <button class="chip" id="zen-btn" data-testid="zen-toggle">⛶</button>
+  <button class="chip" id="theme-btn" data-testid="theme-toggle"></button>
+  <div class="lang" role="group" aria-label="Idioma / Language">
+    <button data-lang="pt" aria-pressed="true" data-testid="lang-pt">PT</button>
+    <button data-lang="en" aria-pressed="false" data-testid="lang-en">EN</button>
+  </div>
+</header>
+
+<main>
+  <h1 class="visually-hidden">Pomodoro Timer</h1>
+
+  <nav class="tabs" aria-label="Modo">
+    <button data-mode="focus" data-i18n="tabFocus" aria-pressed="true" data-testid="tab-focus">Foco</button>
+    <button data-mode="short" data-i18n="tabShort" aria-pressed="false" data-testid="tab-short">Pausa curta</button>
+    <button data-mode="long" data-i18n="tabLong" aria-pressed="false" data-testid="tab-long">Pausa longa</button>
+  </nav>
+
+  <div class="ring">
+    <svg viewBox="0 0 100 100" aria-hidden="true">
+      <circle class="track" cx="50" cy="50" r="45"/>
+      <circle class="progress" cx="50" cy="50" r="45"/>
+    </svg>
+    <div class="time">
+      <strong id="clock" role="timer" data-testid="clock">25:00</strong>
+      <span id="label" data-testid="label">Hora de focar</span>
+    </div>
+  </div>
+
+  <label class="visually-hidden" for="task" data-i18n="taskLabel">No que você está focando?</label>
+  <input id="task" class="task" type="text" maxlength="80" autocomplete="off" data-testid="task">
+
+  <div class="controls">
+    <button class="btn icon-btn" id="reset" data-testid="reset">↺</button>
+    <button class="btn main-btn" id="toggle" data-testid="toggle">Iniciar</button>
+    <button class="btn icon-btn" id="skip" data-testid="skip">⏭</button>
+  </div>
+
+  <div class="dots" id="dots" role="img" data-testid="dots"></div>
+  <p class="stats" id="stats" data-testid="stats"></p>
+
+  <details class="panel">
+    <summary data-i18n="settings">Configurações</summary>
+    <div class="settings">
+      <label for="cfg-focus" data-i18n="cfgFocus">Foco (min)</label>
+      <input type="number" id="cfg-focus" min="1" max="120" data-testid="cfg-focus">
+
+      <label for="cfg-short" data-i18n="cfgShort">Pausa curta (min)</label>
+      <input type="number" id="cfg-short" min="1" max="60" data-testid="cfg-short">
+
+      <label for="cfg-long" data-i18n="cfgLong">Pausa longa (min)</label>
+      <input type="number" id="cfg-long" min="1" max="60" data-testid="cfg-long">
+
+      <label for="cfg-interval" data-i18n="cfgInterval">Pausa longa a cada (ciclos)</label>
+      <input type="number" id="cfg-interval" min="2" max="10" data-testid="cfg-interval">
+
+      <label for="cfg-auto" data-i18n="cfgAuto">Iniciar próxima etapa automaticamente</label>
+      <input type="checkbox" id="cfg-auto" data-testid="cfg-auto">
+
+      <hr>
+
+      <label for="cfg-sound" data-i18n="cfgSound">Alarme</label>
+      <select id="cfg-sound" data-testid="cfg-sound">
+        <option value="bell" data-i18n="soundBell">Sino</option>
+        <option value="digital" data-i18n="soundDigital">Digital</option>
+        <option value="soft" data-i18n="soundSoft">Suave</option>
+        <option value="off" data-i18n="soundOff">Desligado</option>
+      </select>
+
+      <label for="cfg-volume" data-i18n="cfgVolume">Volume do alarme</label>
+      <div class="inline">
+        <input type="range" id="cfg-volume" min="0" max="100" step="5" data-testid="cfg-volume">
+        <button type="button" class="mini" id="test-sound" data-i18n="testSound" data-testid="test-sound">Testar</button>
+      </div>
+
+      <label for="cfg-vibrate" data-i18n="cfgVibrate">Vibrar ao terminar (celular)</label>
+      <input type="checkbox" id="cfg-vibrate" data-testid="cfg-vibrate">
+
+      <hr>
+
+      <label for="cfg-ambient" data-i18n="cfgAmbient">Som ambiente durante o foco</label>
+      <select id="cfg-ambient" data-testid="cfg-ambient">
+        <option value="off" data-i18n="ambOff">Desligado</option>
+        <option value="white" data-i18n="ambWhite">Ruído branco</option>
+        <option value="brown" data-i18n="ambBrown">Ruído marrom</option>
+        <option value="rain" data-i18n="ambRain">Chuva</option>
+      </select>
+
+      <label for="cfg-ambient-volume" data-i18n="cfgAmbientVolume">Volume do ambiente</label>
+      <input type="range" id="cfg-ambient-volume" min="0" max="100" step="5" data-testid="cfg-ambient-volume">
+    </div>
+  </details>
+
+  <p class="hint" id="hint"></p>
+</main>
+
+<p class="zen-hint" id="zen-hint" aria-hidden="true"></p>
+
+<script src="app.js"></script>
+</body>
+</html>
