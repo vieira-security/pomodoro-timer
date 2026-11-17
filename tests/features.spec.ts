@@ -80,7 +80,7 @@ test.describe("Modo foco total", () => {
 test.describe("Layout", () => {
   test("botões do topo continuam clicáveis com a página rolada", async ({ app, page }) => {
     await app.openSettings();
-    await page.mouse.wheel(0, 400);
+    await page.evaluate(() => window.scrollBy(0, 400)); // mouse.wheel não existe no WebKit mobile
     await page.getByTestId("lang-en").click();
     await expect(app.toggle()).toHaveText("Start");
     await page.getByTestId("zen-toggle").click();

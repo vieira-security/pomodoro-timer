@@ -50,7 +50,10 @@ test.describe("Sincronização entre abas", () => {
     const [b] = await tabs(1);
     await expect(b.getByTestId("tab-short")).toHaveAttribute("aria-pressed", "true");
     await expect(b.getByTestId("toggle")).toHaveText("Pausar");
-    await expect(b.getByTestId("clock")).toHaveText("04:50");
+    // o relógio falso continua andando enquanto a aba nova carrega: compara as duas abas
+    await context.clock.pauseAt((await a.evaluate(() => Date.now())) + 500);
+    await expect(b.getByTestId("clock")).toHaveText(/^04:[0-5]\d$/);
+    await expect(b.getByTestId("clock")).toHaveText((await a.getByTestId("clock").textContent())!);
   });
 
   test("no fim do ciclo o alarme toca e o pomodoro conta UMA vez só", async ({ tabs, context }) => {

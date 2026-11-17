@@ -7,7 +7,8 @@ const fakePip = () => {
       const f = document.createElement("iframe");
       f.id = "pip-frame";
       f.style.cssText = "position:fixed;bottom:0;left:0;width:240px;height:290px;border:0;z-index:99";
-      document.documentElement.appendChild(f);
+      // espera o about:blank carregar (no WebKit o documento inicial é trocado no load)
+      await new Promise((ok) => { f.onload = ok; f.src = "about:blank"; document.documentElement.appendChild(f); });
       return f.contentWindow;
     },
   } });

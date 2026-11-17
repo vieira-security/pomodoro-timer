@@ -16,6 +16,9 @@ export default defineConfig({
   projects: [
     { name: "desktop-chromium", use: { ...devices["Desktop Chrome"], locale: "pt-BR" } },
     { name: "mobile-chromium", use: { ...devices["Pixel 7"], locale: "pt-BR" } },
+    { name: "desktop-firefox", use: { ...devices["Desktop Firefox"], locale: "pt-BR" } },
+    { name: "desktop-webkit", use: { ...devices["Desktop Safari"], locale: "pt-BR" } },
+    { name: "mobile-webkit", use: { ...devices["iPhone 15"], locale: "pt-BR" } },
   ],
   webServer: {
     command: "npx http-server public -p 4173 -c-1 --silent",

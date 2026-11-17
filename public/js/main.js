@@ -87,19 +87,21 @@ const pip = createPip({
   }),
 });
 
+/** Só troca o texto se mudou (no WebKit, trocar o texto sob o cursor no meio do clique cancela o clique). */
+const setText = (el, v) => { if (el.textContent !== v) el.textContent = v; };
 const setRing = (fraction) => { progress.style.strokeDashoffset = CIRC * (1 - fraction); };
 const currentFraction = () => (running ? Math.max(0, endAt - Date.now()) : remainingMs) / (total * 1000);
 
 // ---------------------------------------------------------------- render
 function render() {
-  clock.textContent = formatClock(remaining);
-  label.textContent = zen && task ? task : t(mode);
+  setText(clock, formatClock(remaining));
+  setText(label, zen && task ? task : t(mode));
   document.body.classList.toggle("running", running);
   if (!running) {
     progress.classList.add("ease");
     setRing(remainingMs / (total * 1000));
   }
-  toggleBtn.textContent = running ? t("pause") : (remaining < total ? t("resume") : t("start"));
+  setText(toggleBtn, running ? t("pause") : (remaining < total ? t("resume") : t("start")));
 
   const active = running || remaining < total;
   const what = task || (mode === "focus" ? t("titleFocus") : t("titleBreak"));
@@ -118,7 +120,7 @@ function render() {
   dots.setAttribute("aria-label", t("cycles", { n: done, t: settings.interval }));
 
   const s = dayStats(history, today());
-  $("stats").textContent = t("stats", { n: s.count, p: plural(s.count), time: formatDuration(s.seconds) });
+  setText($("stats"), t("stats", { n: s.count, p: plural(s.count), time: formatDuration(s.seconds) }));
 
   favicon.update(active ? currentFraction() : null, cssVar("--accent"), cssVar("--track"));
   wakeLock.set(zen && running);
@@ -272,8 +274,11 @@ function toggle() {
   if (running) { stop(); render(); emit("pause", { mode }); owner = true; broadcast(); return; }
   owner = true;
   Sound.unlock();
+  // No Firefox, pedir permissão tira a página da tela cheia: no modo foco total, não pede
   try {
-    if ("Notification" in window && Notification.permission === "default") Notification.requestPermission();
+    if ("Notification" in window && Notification.permission === "default" && !document.fullscreenElement) {
+      Notification.requestPermission();
+    }
   } catch (e) {}
   start();
 }

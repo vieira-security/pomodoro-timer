@@ -105,6 +105,9 @@ export function createPip({ onToggle, getView }) {
     return { doc, progress, btn, clock: doc.querySelector("strong"), label: doc.querySelector(".time span") };
   }
 
+  // só troca o texto se mudou: no WebKit, trocar o texto sob o cursor durante o clique cancela o clique
+  const setText = (el, v) => { if (el.textContent !== v) el.textContent = v; };
+
   function paint() {
     if (!els) return;
     const v = getView();
@@ -112,9 +115,9 @@ export function createPip({ onToggle, getView }) {
     if (v.theme) root.dataset.theme = v.theme; else delete root.dataset.theme;
     els.doc.body.dataset.mode = v.mode;
     els.doc.body.classList.toggle("running", v.running);
-    els.clock.textContent = v.clock;
-    els.label.textContent = v.label;
-    els.btn.textContent = v.button;
+    setText(els.clock, v.clock);
+    setText(els.label, v.label);
+    setText(els.btn, v.button);
     els.progress.style.strokeDashoffset = CIRC * (1 - v.fraction);
   }
 
