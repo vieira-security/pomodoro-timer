@@ -1,1 +1,20 @@
-# Regras do OWASP ZAP baseline: <id>	<IGNORE|INFO|WARN|FAIL>	<justificativa>
+# Regras do OWASP ZAP baseline. Formato: <id><TAB><IGNORE|INFO|WARN|FAIL|OUTOFSCOPE><TAB><justificativa ou regex de URL>
+# INFO = risco aceito conscientemente (continua no relatório, mas não falha o scan).
+# Qualquer achado NÃO listado aqui falha o workflow.
+#
+# Limitação do GitHub Pages: não é possível definir headers HTTP de resposta.
+10020	INFO	Anti-clickjacking header: impossível no GitHub Pages. Mitigado em JS (body.framed esconde a UI dentro de iframe de outro site) e o app não tem ações sensíveis.
+10021	INFO	X-Content-Type-Options: impossível no GitHub Pages. Todos os arquivos são do próprio site e o monitor de produção valida os Content-Types.
+10063	INFO	Permissions-Policy: impossível no GitHub Pages. A página não pede câmera, microfone, localização etc.
+90004	INFO	COOP/COEP: impossível no GitHub Pages. O app não usa SharedArrayBuffer nem abre janelas de outra origem.
+10098	INFO	Access-Control-Allow-Origin: * é colocado pelo GitHub Pages. Conteúdo público e estático, sem cookies nem autenticação.
+10055	INFO	CSP sem frame-ancestors: a diretiva é ignorada em <meta>, único jeito de ter CSP no GitHub Pages. O resto da política é restritivo (ver tests/security.spec.ts). Os achados de unsafe-inline são de outras páginas do domínio.
+10038	OUTOFSCOPE	^https://vieira-security\.github\.io/(?!pomodoro-timer/).*$
+90003	OUTOFSCOPE	^https://vieira-security\.github\.io/(?!pomodoro-timer/).*$
+# Informativos: comportamento esperado de um site estático com CDN e service worker.
+10015	IGNORE	Cache-Control definido pelo CDN do GitHub Pages; conteúdo público.
+10049	IGNORE	Conteúdo público e cacheável por design.
+10050	IGNORE	Respostas vindas do cache do CDN (Fastly) por design.
+10094	IGNORE	Falso positivo: data URIs de ícones/imagens, nada sensível.
+10109	IGNORE	Informativo: o app é uma SPA em JavaScript.
+90005	IGNORE	Sec-Fetch-*: são headers de REQUISIÇÃO enviados pelo navegador, não algo que o site controla.

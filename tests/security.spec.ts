@@ -78,3 +78,23 @@ test.describe("Segurança", () => {
     expect(blocked).toMatch(/script-src/);
   });
 });
+
+test.describe("Anti-clickjacking", () => {
+  test("dentro de um iframe de outro site, a interface some e só fica o link", async ({ page, browser, baseURL }) => {
+    // página "atacante" em branco (outra origem) que embute o app num iframe
+    const ctx = await browser.newContext();
+    const p = await ctx.newPage();
+    await p.setContent(`<iframe src="${baseURL}/" width="600" height="500"></iframe>`);
+    const app = p.frameLocator("iframe");
+    await expect(app.getByTestId("framed-link")).toBeVisible();
+    await expect(app.getByTestId("framed-link")).toHaveAttribute("target", "_blank");
+    await expect(app.getByTestId("toggle")).toBeHidden();
+    await expect(app.getByTestId("clock")).toBeHidden();
+    await ctx.close();
+  });
+
+  test("aberto normalmente, o link não aparece", async ({ page, app }) => {
+    await expect(page.getByTestId("framed-link")).toHaveCount(0);
+    await expect(app.toggle()).toBeVisible();
+  });
+});

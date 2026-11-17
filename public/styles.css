@@ -408,6 +408,10 @@ body.zen { cursor: none; }
 body.zen .zen-hint.show { opacity: 1; }
 .zen-task { display: block; margin-top: 8px; font-size: 16px; color: var(--muted); max-width: 80%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+/* ---------- Aberto dentro de iframe de outro site (anti-clickjacking) ---------- */
+body.framed > :not(.framed-link) { display: none !important; }
+.framed-link { color: var(--text); font-size: 15px; padding: 12px 18px; border-radius: 999px; background: var(--card); }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0s !important; }
 }

@@ -9,6 +9,24 @@ import { I18N, detectLang, translate } from "./i18n.js";
 import { Noise, createAudio } from "./audio.js";
 import { createFavicon, createWakeLock, createPip } from "./extras.js";
 
+// ---------------------------------------------------------------- anti-clickjacking
+// O GitHub Pages não permite o header X-Frame-Options / CSP frame-ancestors.
+// Mitigação: dentro de um iframe de outro site, a interface some e só fica um link para abrir em aba própria.
+function isFramed() {
+  try { return window.self !== window.top; } catch (e) { return true; }
+}
+if (isFramed()) {
+  document.body.classList.add("framed");
+  const a = document.createElement("a");
+  a.className = "framed-link";
+  a.href = location.href;
+  a.target = "_blank";
+  a.rel = "noopener noreferrer";
+  a.textContent = "Abrir o Pomodoro Timer / Open Pomodoro Timer ↗";
+  a.dataset.testid = "framed-link";
+  document.body.appendChild(a);
+}
+
 // ---------------------------------------------------------------- storage
 const KEYS = {
   settings: "pomodoro-settings",
