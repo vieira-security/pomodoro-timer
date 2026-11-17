@@ -6,3 +6,6 @@ playwright/.cache/
 .lighthouseci/
 .DS_Store
 lighthouse-report/
+coverage/
+reports/
+.stryker-tmp/

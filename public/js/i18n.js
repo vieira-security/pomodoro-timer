@@ -74,11 +74,11 @@ export const I18N = {
 
 export function detectLang(saved, browserLang) {
   if (I18N[saved]) return saved;
-  return (browserLang || "").toLowerCase().startsWith("pt") ? "pt" : "en";
+  return /^pt/i.test(browserLang) ? "pt" : "en";
 }
 
 export function translate(lang, key, vars) {
   let s = I18N[lang][key];
-  if (vars) for (const k in vars) s = s.replace("{" + k + "}", vars[k]);
+  for (const k in vars) s = s.replace("{" + k + "}", vars[k]);
   return s;
 }

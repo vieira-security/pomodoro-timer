@@ -13,12 +13,18 @@
     "assets": "node scripts/generate-assets.mjs",
     "csp": "node scripts/update-csp.mjs",
     "test:visual": "playwright test --project=visual-*",
-    "test:visual:update": "playwright test --project=visual-* --update-snapshots"
+    "test:visual:update": "playwright test --project=visual-* --update-snapshots",
+    "test:unit": "vitest run --coverage",
+    "test:mutation": "stryker run"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
     "@lhci/cli": "^0.16.1",
     "@playwright/test": "^1.65.1",
-    "http-server": "^14.1.1"
+    "@stryker-mutator/core": "^10.1.1",
+    "@stryker-mutator/vitest-runner": "^10.1.1",
+    "@vitest/coverage-v8": "^5.1.0",
+    "http-server": "^14.1.1",
+    "vitest": "^5.1.0"
   }
 }

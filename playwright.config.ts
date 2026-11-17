@@ -17,11 +17,11 @@ export default defineConfig({
   },
   projects: [
     // E2E funcional em 3 motores de navegador
-    { name: "desktop-chromium", testIgnore: [/visual/, /smoke/], use: { ...devices["Desktop Chrome"], locale: "pt-BR" } },
-    { name: "mobile-chromium", testIgnore: [/visual/, /smoke/], use: { ...devices["Pixel 7"], locale: "pt-BR" } },
-    { name: "desktop-firefox", testIgnore: [/visual/, /smoke/], use: { ...devices["Desktop Firefox"], locale: "pt-BR" } },
-    { name: "desktop-webkit", testIgnore: [/visual/, /smoke/], use: { ...devices["Desktop Safari"], locale: "pt-BR" } },
-    { name: "mobile-webkit", testIgnore: [/visual/, /smoke/], use: { ...devices["iPhone 15"], locale: "pt-BR" } },
+    { name: "desktop-chromium", testIgnore: [/visual/, /smoke/, /unit/], use: { ...devices["Desktop Chrome"], locale: "pt-BR" } },
+    { name: "mobile-chromium", testIgnore: [/visual/, /smoke/, /unit/], use: { ...devices["Pixel 7"], locale: "pt-BR" } },
+    { name: "desktop-firefox", testIgnore: [/visual/, /smoke/, /unit/], use: { ...devices["Desktop Firefox"], locale: "pt-BR" } },
+    { name: "desktop-webkit", testIgnore: [/visual/, /smoke/, /unit/], use: { ...devices["Desktop Safari"], locale: "pt-BR" } },
+    { name: "mobile-webkit", testIgnore: [/visual/, /smoke/, /unit/], use: { ...devices["iPhone 15"], locale: "pt-BR" } },
     // regressão visual (rodam no container do Playwright, ver .github/workflows/ci.yml)
     { name: "visual-desktop", testMatch: /visual\/.*\.spec\.ts/, use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 }, locale: "pt-BR" } },
     { name: "visual-mobile", testMatch: /visual\/.*\.spec\.ts/, use: { ...devices["Pixel 7"], locale: "pt-BR" } },

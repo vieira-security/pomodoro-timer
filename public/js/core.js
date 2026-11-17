@@ -34,8 +34,7 @@ export function clampSetting(key, value) {
 /** Junta o que veio do storage com os padrões, corrigindo valores inválidos. */
 export function normalizeSettings(raw) {
   const s = { ...DEFAULTS, ...(raw && typeof raw === "object" ? raw : {}) };
-  if (s.sound === true) s.sound = "bell"; // versão antiga: sound era booleano
-  if (s.sound === false) s.sound = "off";
+  if (s.sound === false) s.sound = "off"; // versão antiga: sound era booleano (true cai no padrão "bell")
   for (const key of Object.keys(LIMITS)) s[key] = clampSetting(key, s[key]);
   if (!SOUNDS.includes(s.sound)) s.sound = DEFAULTS.sound;
   if (!AMBIENTS.includes(s.ambient)) s.ambient = DEFAULTS.ambient;
@@ -108,7 +107,7 @@ export function normalizeHistory(raw, legacyStats) {
     }
   }
   // migra o contador diário da versão anterior ({ date, count, seconds })
-  if (legacyStats && KEY_RE.test(legacyStats.date || "") && !h[legacyStats.date]) {
+  if (legacyStats && KEY_RE.test(legacyStats.date) && !h[legacyStats.date]) {
     const count = Math.max(0, Math.trunc(Number(legacyStats.count) || 0));
     const seconds = Math.max(0, Math.round(Number(legacyStats.seconds) || 0));
     if (count || seconds) h[legacyStats.date] = { count, seconds };
@@ -174,13 +173,11 @@ export function historyToCsv(history) {
 }
 
 // ------------------------------------------------------------------ sincronização entre abas
-const STATE_FIELDS = ["mode", "total", "remainingMs", "endAt", "running", "completedFocus", "rev"];
-
 /** Valida uma mensagem de estado vinda de outra aba. */
 export function isValidState(s) {
   if (!s || typeof s !== "object") return false;
   if (!MODES.includes(s.mode)) return false;
-  for (const f of STATE_FIELDS.slice(1)) if (!(f in s)) return false;
+  // campo ausente vira undefined e já é reprovado pelas checagens de tipo abaixo
   return Number.isFinite(s.total) && s.total > 0 && Number.isFinite(s.remainingMs) && s.remainingMs >= 0
     && Number.isFinite(s.endAt) && typeof s.running === "boolean"
     && Number.isInteger(s.completedFocus) && s.completedFocus >= 0 && Number.isFinite(s.rev);
