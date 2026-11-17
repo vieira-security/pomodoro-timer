@@ -1,13 +1,17 @@
 /* Service worker: deixa o site funcionando offline.
    Estratégia: responde do cache na hora e atualiza o cache em segundo plano
    (stale-while-revalidate). Troque VERSION ao publicar mudanças grandes. */
-const VERSION = "v2";
+const VERSION = "v3";
 const CACHE = `pomodoro-${VERSION}`;
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
-  "./app.js",
+  "./js/main.js",
+  "./js/core.js",
+  "./js/i18n.js",
+  "./js/audio.js",
+  "./js/extras.js",
   "./manifest.webmanifest",
   "./icons/icon.svg",
   "./icons/icon-192.png",

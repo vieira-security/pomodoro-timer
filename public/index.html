@@ -46,6 +46,7 @@
 <body data-mode="focus">
 
 <header class="topbar">
+  <button class="chip" id="pip-btn" data-testid="pip-toggle" hidden></button>
   <button class="chip" id="zen-btn" data-testid="zen-toggle">⛶</button>
   <button class="chip" id="theme-btn" data-testid="theme-toggle"></button>
   <div class="lang" role="group" aria-label="Idioma / Language">
@@ -86,9 +87,31 @@
   <div class="dots" id="dots" role="img" data-testid="dots"></div>
   <p class="stats" id="stats" data-testid="stats"></p>
 
-  <details class="panel">
+  <details class="panel" id="history-panel">
+    <summary data-i18n="history">Histórico</summary>
+    <div class="history">
+      <dl class="hist-stats">
+        <div><dt data-i18n="histWeek">Últimos 7 dias</dt><dd id="hist-week" data-testid="hist-week"></dd></div>
+        <div><dt data-i18n="histMonth">Últimos 30 dias</dt><dd id="hist-month" data-testid="hist-month"></dd></div>
+        <div><dt data-i18n="histStreak">Sequência</dt><dd id="hist-streak" data-testid="hist-streak"></dd></div>
+      </dl>
+      <ol class="hist-chart" id="hist-chart" data-testid="hist-chart"></ol>
+      <button type="button" class="mini" id="export-csv" data-i18n="exportCsv" data-testid="export-csv">Exportar CSV</button>
+    </div>
+  </details>
+
+  <details class="panel" id="settings-panel">
     <summary data-i18n="settings">Configurações</summary>
     <div class="settings">
+      <div class="presets-row">
+        <span id="presets-label" data-i18n="presets">Atalhos de tempo</span>
+        <div class="presets" role="group" aria-labelledby="presets-label">
+          <button type="button" data-preset="classic" aria-pressed="false" data-testid="preset-classic">25 / 5</button>
+          <button type="button" data-preset="extended" aria-pressed="false" data-testid="preset-extended">50 / 10</button>
+          <button type="button" data-preset="deep" aria-pressed="false" data-testid="preset-deep">90 / 20</button>
+        </div>
+      </div>
+
       <label for="cfg-focus" data-i18n="cfgFocus">Foco (min)</label>
       <input type="number" id="cfg-focus" min="1" max="120" data-testid="cfg-focus">
 
@@ -147,6 +170,6 @@
 
 <p class="zen-hint" id="zen-hint" aria-hidden="true"></p>
 
-<script src="app.js"></script>
+<script type="module" src="js/main.js"></script>
 </body>
 </html>

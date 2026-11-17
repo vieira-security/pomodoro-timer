@@ -61,7 +61,7 @@ export class AppPage {
   }
 
   async openSettings() {
-    const details = this.page.locator("details.panel");
+    const details = this.page.locator("#settings-panel");
     if (!(await details.evaluate((d: HTMLDetailsElement) => d.open))) await details.locator("summary").click();
   }
 

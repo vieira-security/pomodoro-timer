@@ -55,6 +55,7 @@ body {
 }
 main { width: 100%; max-width: 420px; text-align: center; }
 button, input, select { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .visually-hidden {
   position: absolute !important;
@@ -326,6 +327,60 @@ summary { cursor: pointer; color: var(--muted); font-size: 14px; }
   .range-value { min-width: 32px; }
 }
 kbd { background: var(--card); border-radius: 4px; padding: 1px 6px; font-family: inherit; }
+
+/* ---------- Histórico ---------- */
+.panel + .panel { margin-top: 12px; }
+.history { margin-top: 16px; }
+.hist-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 18px; }
+.hist-stats div { background: var(--bg); border-radius: 10px; padding: 10px; text-align: center; }
+.hist-stats dt { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+.hist-stats dd { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.hist-chart {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  height: 120px;
+  align-items: end;
+  margin-bottom: 14px;
+}
+.hist-chart li { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; gap: 6px; }
+.hist-chart .bar {
+  --h: 0%;
+  width: 100%;
+  max-width: 28px;
+  height: max(4px, calc(var(--h) * 0.82));
+  border-radius: 6px 6px 3px 3px;
+  background: color-mix(in srgb, var(--accent) 55%, var(--track));
+  transition: height .5s cubic-bezier(.4, 0, .2, 1);
+}
+.hist-chart li.empty .bar { background: var(--track); }
+.hist-chart li.today .bar { background: var(--accent); }
+.hist-chart .day { font-size: 11px; color: var(--muted); text-transform: capitalize; }
+.history .mini { display: block; margin-left: auto; }
+
+/* ---------- Atalhos de tempo ---------- */
+.presets-row { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.presets { display: flex; gap: 6px; }
+.presets button {
+  border: 1px solid var(--track);
+  background: var(--bg);
+  border-radius: 999px;
+  padding: 6px 11px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background-color .2s, border-color .2s, color .2s;
+}
+.presets button:hover { border-color: var(--accent); }
+.presets button[aria-pressed="true"] { background: var(--accent-strong); border-color: var(--accent-strong); color: #fff; }
+
+/* ---------- Mini timer flutuante (Picture-in-Picture) ---------- */
+body.pip { padding: 14px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+body.pip .ring { width: min(190px, 70vw, 62vh); margin: 0; }
+body.pip .time strong { font-size: clamp(28px, 13vmin, 46px); }
+body.pip .time span { font-size: 12px; max-width: 80%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.pip .main-btn { width: 120px; padding: 10px 0; font-size: 15px; }
 
 /* ---------- Modo foco total (zen) ---------- */
 body.zen .topbar,
