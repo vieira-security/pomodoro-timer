@@ -17,16 +17,30 @@ export default defineConfig({
   },
   projects: [
     // E2E funcional em 3 motores de navegador
-    { name: "desktop-chromium", testIgnore: /visual/, use: { ...devices["Desktop Chrome"], locale: "pt-BR" } },
-    { name: "mobile-chromium", testIgnore: /visual/, use: { ...devices["Pixel 7"], locale: "pt-BR" } },
-    { name: "desktop-firefox", testIgnore: /visual/, use: { ...devices["Desktop Firefox"], locale: "pt-BR" } },
-    { name: "desktop-webkit", testIgnore: /visual/, use: { ...devices["Desktop Safari"], locale: "pt-BR" } },
-    { name: "mobile-webkit", testIgnore: /visual/, use: { ...devices["iPhone 15"], locale: "pt-BR" } },
+    { name: "desktop-chromium", testIgnore: [/visual/, /smoke/], use: { ...devices["Desktop Chrome"], locale: "pt-BR" } },
+    { name: "mobile-chromium", testIgnore: [/visual/, /smoke/], use: { ...devices["Pixel 7"], locale: "pt-BR" } },
+    { name: "desktop-firefox", testIgnore: [/visual/, /smoke/], use: { ...devices["Desktop Firefox"], locale: "pt-BR" } },
+    { name: "desktop-webkit", testIgnore: [/visual/, /smoke/], use: { ...devices["Desktop Safari"], locale: "pt-BR" } },
+    { name: "mobile-webkit", testIgnore: [/visual/, /smoke/], use: { ...devices["iPhone 15"], locale: "pt-BR" } },
     // regressão visual (rodam no container do Playwright, ver .github/workflows/ci.yml)
     { name: "visual-desktop", testMatch: /visual\/.*\.spec\.ts/, use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 }, locale: "pt-BR" } },
     { name: "visual-mobile", testMatch: /visual\/.*\.spec\.ts/, use: { ...devices["Pixel 7"], locale: "pt-BR" } },
+    // monitoramento sintético do site publicado (relógio real, sem mocks)
+    {
+      name: "production",
+      testMatch: /smoke\/.*\.spec\.ts/,
+      timeout: 15 * 60_000,
+      retries: 1,
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: process.env.PROD_URL || "https://vieira-security.github.io/pomodoro-timer/",
+        serviceWorkers: "allow",
+        locale: "pt-BR",
+      },
+    },
   ],
-  webServer: {
+  // o servidor local não é necessário quando só o monitor de produção roda
+  webServer: process.env.PROD_MONITOR ? undefined : {
     command: "npx http-server public -p 4173 -c-1 --silent",
     url: "http://localhost:4173",
     reuseExistingServer: !process.env.CI,
