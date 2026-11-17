@@ -1,0 +1,33 @@
+name: Update visual baselines
+
+# Gera de novo as imagens de referência da regressão visual e faz commit delas.
+# Use depois de uma mudança visual INTENCIONAL: Actions → "Update visual baselines" → Run workflow.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write # para fazer o commit das imagens
+    container: mcr.microsoft.com/playwright:v1.65.1-noble
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: npm ci
+      - run: npx playwright test --project=visual-desktop --project=visual-mobile --update-snapshots
+      - name: Commit updated baselines
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/visual/__screenshots__
+          if git diff --cached --quiet; then
+            echo "Nenhuma imagem mudou."
+          else
+            git commit -m "test: update visual baselines"
+            git push
+          fi

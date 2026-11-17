@@ -17,9 +17,19 @@ concurrency:
 
 jobs:
   e2e:
-    name: E2E tests (Playwright)
+    name: E2E (${{ matrix.browser }})
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - browser: chromium
+            projects: --project=desktop-chromium --project=mobile-chromium
+          - browser: firefox
+            projects: --project=desktop-firefox
+          - browser: webkit
+            projects: --project=desktop-webkit --project=mobile-webkit
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -29,13 +39,34 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - run: npx playwright test
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: npx playwright test ${{ matrix.projects }}
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.browser }}
           path: playwright-report/
+          retention-days: 14
+
+  visual:
+    name: Visual regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # imagem oficial do Playwright: mesmas fontes e navegador usados para gerar as referências
+    container: mcr.microsoft.com/playwright:v1.65.1-noble
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: npm ci
+      - run: npx playwright test --project=visual-desktop --project=visual-mobile
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ failure() }}
+        with:
+          name: visual-diff
+          path: |
+            playwright-report/
+            test-results/
           retention-days: 14
 
   lighthouse:
@@ -61,7 +92,7 @@ jobs:
 
   deploy:
     name: Deploy to GitHub Pages
-    needs: [e2e, lighthouse]
+    needs: [e2e, visual, lighthouse]
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
