@@ -66,7 +66,8 @@ button, input, select { font: inherit; color: inherit; }
 
 /* ---------- Barra superior ---------- */
 .topbar {
-  position: fixed;
+  position: absolute; /* rola junto com a página: não cobre o conteúdo no celular */
+  z-index: 10;
   top: 14px;
   right: 14px;
   display: flex;
@@ -231,18 +232,89 @@ summary { cursor: pointer; color: var(--muted); font-size: 14px; }
   background: var(--bg);
 }
 .settings input[type="number"] { width: 72px; text-align: center; }
+.settings > input, .settings > select { justify-self: end; }
 .settings select { max-width: 150px; }
-.settings input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent-strong); justify-self: end; }
-.settings input[type="range"] { width: 110px; accent-color: var(--accent-strong); }
-.inline { display: flex; gap: 8px; align-items: center; }
+/* chave liga/desliga */
+.settings input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  width: 40px; height: 24px;
+  border-radius: 999px;
+  background: var(--track);
+  cursor: pointer;
+  justify-self: end;
+  transition: background-color .2s;
+}
+.settings input[type="checkbox"]::before {
+  content: "";
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .35);
+  transition: transform .2s cubic-bezier(.4, 0, .2, 1);
+}
+.settings input[type="checkbox"]:checked { background: var(--accent-strong); }
+.settings input[type="checkbox"]:checked::before { transform: translateX(16px); }
+
+/* barra de volume */
+.settings input[type="range"] {
+  --fill: 50%;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 104px; height: 24px;
+  background: transparent;
+  cursor: pointer;
+}
+.settings input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--accent-strong) var(--fill), var(--track) var(--fill));
+}
+.settings input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: #fff;
+  border: 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .4), 0 0 0 0 var(--accent);
+  transition: transform .15s, box-shadow .15s;
+}
+.settings input[type="range"]::-moz-range-track { height: 6px; border-radius: 999px; background: var(--track); }
+.settings input[type="range"]::-moz-range-progress { height: 6px; border-radius: 999px; background: var(--accent-strong); }
+.settings input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .4);
+  transition: transform .15s;
+}
+.settings input[type="range"]:hover::-webkit-slider-thumb,
+.settings input[type="range"]:focus-visible::-webkit-slider-thumb { transform: scale(1.12); box-shadow: 0 1px 4px rgba(0, 0, 0, .4), 0 0 0 5px color-mix(in srgb, var(--accent) 30%, transparent); }
+.settings input[type="range"]:hover::-moz-range-thumb { transform: scale(1.12); }
+.settings input[type="range"]:focus-visible { outline: none; }
+.range-value {
+  min-width: 36px;
+  text-align: right;
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.inline { display: flex; gap: 8px; align-items: center; justify-self: end; }
 .mini {
   border: 1px solid var(--track);
   background: var(--bg);
-  border-radius: 8px;
-  padding: 6px 10px;
-  font-size: 13px;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 12px;
   cursor: pointer;
+  transition: border-color .2s, color .2s;
 }
+.mini:hover { border-color: var(--accent); color: var(--accent); }
 .hint { margin-top: 20px; color: var(--muted); font-size: 12px; line-height: 1.8; }
 @media (pointer: coarse) { .hint { display: none; } }
 kbd { background: var(--card); border-radius: 4px; padding: 1px 6px; font-family: inherit; }

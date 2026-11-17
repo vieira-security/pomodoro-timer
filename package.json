@@ -10,7 +10,8 @@
     "test:ui": "playwright test --ui",
     "report": "playwright show-report",
     "lighthouse": "lhci autorun",
-    "assets": "node scripts/generate-assets.mjs"
+    "assets": "node scripts/generate-assets.mjs",
+    "csp": "node scripts/update-csp.mjs"
   },
   "devDependencies": {
     "@lhci/cli": "^0.16.1",

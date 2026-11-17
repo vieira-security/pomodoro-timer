@@ -2,6 +2,10 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<!-- Segurança: só carrega scripts, estilos e mídia do próprio site.
+     O hash libera apenas o pequeno script de tema abaixo (se ele mudar, rode `npm run csp`). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-bmsYtHcearjdfI5qBVirIQwKB5Mm97Pm7qV1BFBIpd0='; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self'; font-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Pomodoro Timer</title>
 <meta name="description" content="Timer Pomodoro simples, sem distrações e instalável. Funciona offline.">
@@ -113,6 +117,7 @@
       <label for="cfg-volume" data-i18n="cfgVolume">Volume do alarme</label>
       <div class="inline">
         <input type="range" id="cfg-volume" min="0" max="100" step="5" data-testid="cfg-volume">
+        <output class="range-value" for="cfg-volume" id="cfg-volume-out"></output>
         <button type="button" class="mini" id="test-sound" data-i18n="testSound" data-testid="test-sound">Testar</button>
       </div>
 
@@ -130,7 +135,10 @@
       </select>
 
       <label for="cfg-ambient-volume" data-i18n="cfgAmbientVolume">Volume do ambiente</label>
-      <input type="range" id="cfg-ambient-volume" min="0" max="100" step="5" data-testid="cfg-ambient-volume">
+      <div class="inline">
+        <input type="range" id="cfg-ambient-volume" min="0" max="100" step="5" data-testid="cfg-ambient-volume">
+        <output class="range-value" for="cfg-ambient-volume" id="cfg-ambient-volume-out"></output>
+      </div>
     </div>
   </details>
 

@@ -323,72 +323,120 @@
     },
   };
 
-  // Som ambiente gerado na hora (sem arquivos de áudio)
+  // Som ambiente.
+  // Ruído branco e marrom são gerados na hora (10 s, com o fim encaixando no
+  // começo para o loop não ter clique). A chuva é uma gravação real
+  // (sounds/rain.mp3, 2:30 com crossfade na emenda), baixada só quando usada.
+  const Noise = {
+    brown(len) {
+      const d = new Float32Array(len);
+      let last = 0;
+      for (let i = 0; i < len; i++) { last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02; d[i] = last; }
+      return d;
+    },
+    white(len) {
+      const d = new Float32Array(len);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      return d;
+    },
+    // remove a "rampa" entre o fim e o começo (loop sem degrau) e normaliza o volume
+    seamless(d, peak = 0.9) {
+      const len = d.length, step = (d[len - 1] - d[0]) / (len - 1);
+      let mean = 0;
+      for (let i = 0; i < len; i++) { d[i] -= step * i; mean += d[i]; }
+      mean /= len;
+      let max = 0;
+      for (let i = 0; i < len; i++) { d[i] -= mean; max = Math.max(max, Math.abs(d[i])); }
+      if (max > 0) for (let i = 0; i < len; i++) d[i] *= peak / max;
+      return d;
+    },
+    generate(kind, rate) {
+      const len = Math.round(10 * rate);
+      return kind === "white" ? this.seamless(this.white(len), 0.6) : this.seamless(this.brown(len));
+    },
+  };
+  window.PomodoroNoise = Noise; // usado nos testes
+
+  const AMBIENT = {
+    white: { gain: 0.5 },
+    brown: { gain: 1 },
+    rain: { gain: 1.2, url: "sounds/rain.mp3" },
+  };
+
   const Ambient = {
     nodes: null,
-    buffer(ctx, kind) {
-      const len = ctx.sampleRate * 4;
-      const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-      const d = buf.getChannelData(0);
-      let last = 0, b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
-      for (let i = 0; i < len; i++) {
-        const w = Math.random() * 2 - 1;
-        if (kind === "white") d[i] = w * 0.5;
-        else if (kind === "brown") { last = (last + 0.02 * w) / 1.02; d[i] = last * 3.5; }
-        else { // rosa (Paul Kellet) — base da chuva
-          b0 = 0.99886 * b0 + w * 0.0555179; b1 = 0.99332 * b1 + w * 0.0750759;
-          b2 = 0.969 * b2 + w * 0.153852;    b3 = 0.8665 * b3 + w * 0.3104856;
-          b4 = 0.55 * b4 + w * 0.5329522;    b5 = -0.7616 * b5 - w * 0.016898;
-          d[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * 0.5362) * 0.11;
-          b6 = w * 0.115926;
-        }
+    cache: {},
+    session: 0,
+    // devolve o AudioBuffer do som (gera ou baixa uma vez e guarda)
+    load(ctx, kind) {
+      if (!this.cache[kind]) {
+        const cfg = AMBIENT[kind];
+        this.cache[kind] = cfg.url
+          ? fetch(cfg.url)
+              .then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+              .then((data) => new Promise((ok, fail) => ctx.decodeAudioData(data, ok, fail)))
+          : Promise.resolve().then(() => {
+              const data = Noise.generate(kind, ctx.sampleRate);
+              const buf = ctx.createBuffer(1, data.length, ctx.sampleRate);
+              buf.copyToChannel(data, 0);
+              return buf;
+            });
+        this.cache[kind].catch(() => { delete this.cache[kind]; }); // tenta de novo na próxima
       }
-      // suaviza a emenda do loop
-      const fade = 2000;
-      for (let i = 0; i < fade; i++) { const k = i / fade; d[i] *= k; d[len - 1 - i] *= k; }
-      return buf;
+      return this.cache[kind];
+    },
+    // ignora silêncio que o decodificador de MP3 pode colocar nas pontas
+    edges(buf) {
+      const d = buf.getChannelData(0), max = Math.min(d.length >> 1, buf.sampleRate);
+      let a = 0, b = d.length - 1;
+      while (a < max && Math.abs(d[a]) < 1e-4) a++;
+      while (b > d.length - max && Math.abs(d[b]) < 1e-4) b--;
+      return [a / buf.sampleRate, (b + 1) / buf.sampleRate];
     },
     start() {
       if (settings.ambient === "off" || this.nodes) return;
       const ctx = Sound.unlock();
       if (!ctx) return;
-      const src = ctx.createBufferSource();
-      src.buffer = this.buffer(ctx, settings.ambient);
-      src.loop = true;
-      const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(this.level(), ctx.currentTime + 1.5);
-      let chain = src;
-      if (settings.ambient === "rain") {
-        const hp = ctx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 400;
-        const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 6000;
-        // leve oscilação de intensidade, como chuva real
-        const lfo = ctx.createOscillator(), lfoGain = ctx.createGain();
-        lfo.frequency.value = 0.15; lfoGain.gain.value = 1500;
-        lfo.connect(lfoGain).connect(lp.frequency); lfo.start();
-        src.connect(hp).connect(lp);
-        chain = lp;
-        this.lfo = lfo;
-      }
-      chain.connect(gain).connect(ctx.destination);
-      src.start();
-      this.nodes = { src, gain, ctx };
-      emit("ambient", { playing: true, kind: settings.ambient });
+      const kind = settings.ambient;
+      const id = ++this.session;
+      const master = ctx.createGain();
+      master.gain.value = 0.0001;
+      master.connect(ctx.destination);
+      this.nodes = { master, ctx, src: null };
+      emit("ambient", { playing: true, kind });
+
+      this.load(ctx, kind).then((buf) => {
+        if (id !== this.session || !this.nodes) return; // parou antes de terminar de carregar
+        const [loopStart, loopEnd] = this.edges(buf);
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        src.loop = true;
+        src.loopStart = loopStart;
+        src.loopEnd = loopEnd;
+        const g = ctx.createGain();
+        g.gain.value = AMBIENT[kind].gain;
+        src.connect(g).connect(master);
+        // começa num ponto aleatório para cada sessão soar diferente
+        src.start(ctx.currentTime, loopStart + Math.random() * (loopEnd - loopStart));
+        master.gain.setValueAtTime(0.0001, ctx.currentTime);
+        master.gain.exponentialRampToValueAtTime(this.level(), ctx.currentTime + 1.5);
+        this.nodes.src = src;
+      }).catch(() => {});
     },
     level() { return Math.max(0.0001, Math.pow(settings.ambientVolume / 100, 2) * 0.8); },
     setVolume() {
-      if (this.nodes) this.nodes.gain.gain.setTargetAtTime(this.level(), this.nodes.ctx.currentTime, 0.1);
+      if (this.nodes && this.nodes.src) this.nodes.master.gain.setTargetAtTime(this.level(), this.nodes.ctx.currentTime, 0.1);
     },
     stop() {
       if (!this.nodes) return;
-      const { src, gain, ctx } = this.nodes;
+      const { src, master, ctx } = this.nodes;
       const now = ctx.currentTime;
-      gain.gain.cancelScheduledValues(now);
-      gain.gain.setValueAtTime(Math.max(gain.gain.value, 0.0001), now);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
-      src.stop(now + 0.65);
-      if (this.lfo) { this.lfo.stop(now + 0.65); this.lfo = null; }
+      master.gain.cancelScheduledValues(now);
+      master.gain.setValueAtTime(Math.max(master.gain.value, 0.0001), now);
+      master.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+      if (src) src.stop(now + 0.65);
       this.nodes = null;
+      this.session++;
       emit("ambient", { playing: false });
     },
   };
@@ -538,8 +586,15 @@
   });
   [["volume", "cfg-volume"], ["ambientVolume", "cfg-ambient-volume"]].forEach(([key, id]) => {
     const el = $(id);
+    const out = $(id + "-out");
+    const paint = () => {
+      el.style.setProperty("--fill", el.value + "%");
+      out.textContent = el.value + "%";
+    };
     el.value = settings[key];
+    paint();
     el.addEventListener("input", () => {
+      paint();
       settings[key] = +el.value;
       save(KEYS.settings, settings);
       if (key === "ambientVolume") Ambient.setVolume();
